@@ -50,6 +50,46 @@
 4. Drag-and-drop the `.ankiaddon` package onto the add-ons list
 5. Restart Anki
 
+#### Local installation <!-- omit in toc -->
+
+If you cloned this repository locally, install the add-on by copying only the add-on package folder into Anki's `addons21` directory.
+
+On Windows, the usual destination is:
+
+```text
+C:\Users\YOUR_USER\AppData\Roaming\Anki2\addons21\image_occlusion_enhanced
+```
+
+From this repository, copy this folder:
+
+```text
+src\image_occlusion_enhanced
+```
+
+The final structure should look like this:
+
+```text
+addons21\image_occlusion_enhanced\
+  __init__.py
+  add.py
+  config.py
+  editor.py
+  main.py
+  ngen.py
+  template.py
+  web\
+    reviewer.js
+    editor.js
+    editor.css
+  svg-edit\
+    editor\
+      ...
+```
+
+After copying it, close Anki completely and open it again. The add-on should appear as `Image Occlusion DragLab`.
+
+This fork keeps the Python module folder as `image_occlusion_enhanced` and keeps the original note type name internally for compatibility with existing Image Occlusion cards. Do not install two local copies with the same `image_occlusion_enhanced` folder name at the same time.
+
 ### Documentation
 
 The original Image Occlusion Enhanced documentation is available in the [Wiki](https://github.com/Glutanimate/image-occlusion-enhanced/wiki) and a [series of video tutorials on YouTube](https://www.youtube.com/playlist?list=PL3MozITKTz5YFHDGB19ypxcYfJ1ITk_6o). The drag-and-drop workflow added by this fork is documented below.
@@ -80,12 +120,12 @@ This fork includes a drag-and-drop card type designed for images with several bl
 Example `Drag Options` content:
 
 ```text
-10.0.0.2
-10.0.0.3
-78:84:3c:ca:11:32
-4c:0f:6e:d4:32:27
-98:86:33:ba:15:33
-10.0.0.254
+CPU
+RAM
+Storage
+Power Supply
+Motherboard
+Graphics Card
 ```
 
 #### Reviewing drag-and-drop cards
