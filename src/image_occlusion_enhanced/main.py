@@ -77,7 +77,7 @@ def on_io_help():
 
 
 def on_image_occlusion_button(self, origin=None, image_path=None):
-    """Launch Image Occlusion Enhanced"""
+    """Launch Image Occlusion DragLab"""
     origin = origin or get_editor_parent_instance(self.parentWindow)
     io_model = getOrCreateModel()
     if io_model:
@@ -113,10 +113,10 @@ def on_setup_editor_buttons(buttons, editor):
     origin = get_editor_parent_instance(editor.parentWindow)
 
     if origin == "addcards":
-        tt = _("Add Image Occlusion")
+        tt = _("Add Image Occlusion DragLab")
         icon_name = "add.png"
     else:
-        tt = _("Edit Image Occlusion")
+        tt = _("Edit Image Occlusion DragLab")
         icon_name = "edit.png"
 
     icon = os.path.join(ICONS_PATH, icon_name)
@@ -280,9 +280,9 @@ def on_show_answer(self, _old):
 
 
 def setup_menus(main_window: "AnkiQt"):
-    options_action = QAction(_("Image &Occlusion Enhanced Options..."), mw)
+    options_action = QAction(_("Image &Occlusion DragLab Options..."), mw)
     qconnect(options_action.triggered, on_io_settings)
-    help_action = QAction(_("Image &Occlusion Enhanced..."), mw)
+    help_action = QAction(_("Image &Occlusion DragLab..."), mw)
     qconnect(help_action.triggered, on_io_help)
     main_window.addonManager.setConfigAction(__name__, on_io_settings)
     main_window.form.menuTools.addAction(options_action)

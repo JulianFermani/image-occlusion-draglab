@@ -36,6 +36,8 @@ the collection.
 """
 
 import uuid
+import json
+import re
 from typing import Union
 from xml.dom import minidom
 
@@ -69,6 +71,8 @@ def genByKey(key, old_occl_tp=None):
         return IoGenHideAllRevealOne
     elif key in ["oa", "Hide One, Guess One"]:
         return IoGenHideOneRevealAll
+    elif key in ["dd", "Drag and Drop"]:
+        return IoGenDragAndDrop
     else:
         return IoGenHideAllRevealOne
 
@@ -507,6 +511,154 @@ class ImgOccNoteGenerator(object):
             logger.debug("!notecreate %s", note)
 
         return note
+
+
+class IoGenDragAndDrop(ImgOccNoteGenerator):
+    """One interactive card with all masks as drop targets."""
+
+    occl_tp = "dd"
+
+    def generateNotes(self) -> Union[list, bool]:
+        self.uniq_id = str(uuid.uuid4()).replace("-", "")
+        self.occl_id = "%s-%s" % (self.uniq_id, self.occl_tp)
+
+        svg_node, mlayer_node = self._getMnodesAndSetIds()
+        if not self.mnode_ids:
+            tooltip(
+                _("No cards to generate.<br>Are you sure you set your masks correctly?")
+            )
+            return False
+
+        options = self._dragOptions()
+        if len(options) != len(self.mnode_indexes):
+            tooltip(
+                _(
+                    "Drag and drop needs one option per mask.<br>"
+                    "You have {option_count} option(s) and {mask_count} mask(s)."
+                ).format(option_count=len(options), mask_count=len(self.mnode_indexes))
+            )
+            return False
+
+        width = self._floatAttr(svg_node, "width")
+        height = self._floatAttr(svg_node, "height")
+        if not width or not height:
+            tooltip(_("Drag and drop could not read the image dimensions."))
+            return False
+        targets = []
+        for nr, idx in enumerate(self.mnode_indexes):
+            mnode = mlayer_node.childNodes[idx]
+            bbox = self._nodeBBox(mnode)
+            if not bbox:
+                tooltip(
+                    _(
+                        "Drag and drop currently needs simple mask shapes "
+                        "(rectangles, circles, ellipses, lines, or polygons)."
+                    )
+                )
+                return False
+            x, y, w, h = bbox
+            targets.append(
+                {
+                    "id": self.mnode_ids[idx],
+                    "label": options[nr],
+                    "x": 100 * x / width,
+                    "y": 100 * y / height,
+                    "width": 100 * w / width,
+                    "height": 100 * h / height,
+                }
+            )
+
+        self.new_svg = svg_node.toxml()
+        omask_path = self._saveMask(self.new_svg, self.occl_id, "O")
+        image_path = mw.col.media.add_file(self.image_path)
+        img = path_to_img_element(image_path)
+        note_id = "%s-1" % self.occl_id
+        drag_data = json.dumps({"targets": targets}, ensure_ascii=False)
+
+        mw.checkpoint("Adding Drag and Drop Image Occlusion Card")
+        self.model["did"] = self.did
+        note = Note(mw.col, self.model)
+        note.tags = self.tags
+        fields = dict(self.fields)
+        fields[self.ioflds["id"]] = note_id
+        fields[self.ioflds["im"]] = img
+        fields[self.ioflds["om"]] = path_to_img_element(omask_path)
+        fields[self.ioflds["dd"]] = drag_data.replace("</", "<\\/")
+        for field in self.mflds:
+            fname = field["name"]
+            if fname in fields:
+                note[fname] = fields[fname]
+        mw.col.addNote(note)
+        tooltip(_("One drag and drop card <b>added</b>"), parent=None)
+        return [note]
+
+    def _dragOptions(self):
+        value = self.fields.get(self.ioflds["do"], "")
+        value = re.sub(r"<br\s*/?>", "\n", value)
+        return [line.strip() for line in value.splitlines() if line.strip()]
+
+    def _floatAttr(self, node, attr, default=0):
+        if not node.hasAttribute(attr):
+            return default
+        value = node.getAttribute(attr)
+        match = re.match(r"-?\d+(?:\.\d+)?", value)
+        return float(match.group(0)) if match else default
+
+    def _nodeBBox(self, node):
+        if node.nodeType != node.ELEMENT_NODE:
+            return None
+
+        if node.nodeName == "g":
+            boxes = [self._nodeBBox(child) for child in node.childNodes]
+            boxes = [box for box in boxes if box]
+            if not boxes:
+                return None
+            x1 = min(box[0] for box in boxes)
+            y1 = min(box[1] for box in boxes)
+            x2 = max(box[0] + box[2] for box in boxes)
+            y2 = max(box[1] + box[3] for box in boxes)
+            return (x1, y1, x2 - x1, y2 - y1)
+
+        if node.nodeName == "rect":
+            return (
+                self._floatAttr(node, "x"),
+                self._floatAttr(node, "y"),
+                self._floatAttr(node, "width"),
+                self._floatAttr(node, "height"),
+            )
+
+        if node.nodeName == "ellipse":
+            cx = self._floatAttr(node, "cx")
+            cy = self._floatAttr(node, "cy")
+            rx = self._floatAttr(node, "rx")
+            ry = self._floatAttr(node, "ry")
+            return (cx - rx, cy - ry, rx * 2, ry * 2)
+
+        if node.nodeName == "circle":
+            cx = self._floatAttr(node, "cx")
+            cy = self._floatAttr(node, "cy")
+            r = self._floatAttr(node, "r")
+            return (cx - r, cy - r, r * 2, r * 2)
+
+        if node.nodeName == "line":
+            x1 = self._floatAttr(node, "x1")
+            y1 = self._floatAttr(node, "y1")
+            x2 = self._floatAttr(node, "x2")
+            y2 = self._floatAttr(node, "y2")
+            return (min(x1, x2), min(y1, y2), abs(x2 - x1), abs(y2 - y1))
+
+        if node.nodeName in ("polygon", "polyline"):
+            points = re.findall(
+                r"(-?\d+(?:\.\d+)?)[,\s]+(-?\d+(?:\.\d+)?)",
+                node.getAttribute("points"),
+            )
+            if not points:
+                return None
+            xs = [float(x) for x, _ in points]
+            ys = [float(y) for _, y in points]
+            return (min(xs), min(ys), max(xs) - min(xs), max(ys) - min(ys))
+
+        return None
 
 # Different generator subclasses for different occlusion types:
 

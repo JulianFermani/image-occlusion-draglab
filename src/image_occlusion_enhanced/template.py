@@ -40,6 +40,19 @@ from .config import *
 
 iocard_front = """\
 {{#%(src_img)s}}
+{{#%(drag_data)s}}
+<div id="io-header">{{%(header)s}}</div>
+<div id="io-dnd" class="io-dnd-card">
+  <div id="io-dnd-stage" class="io-dnd-stage">
+    {{%(src_img)s}}
+  </div>
+  <div id="io-dnd-options" class="io-dnd-options" aria-label="Drag options"></div>
+</div>
+<div id="io-footer">{{%(footer)s}}</div>
+<script id="io-dnd-data" type="application/json">{{%(drag_data)s}}</script>
+<script>setTimeout(function(){ if (globalThis.imageOcclusion) imageOcclusion.initDragAndDrop(); }, 0);</script>
+{{/%(drag_data)s}}
+{{^%(drag_data)s}}
 <div id="io-header">{{%(header)s}}</div>
 <div id="io-wrapper">
   <div id="io-overlay">{{%(que)s}}</div>
@@ -61,6 +74,7 @@ if (mask === null || mask.complete) {
     mask.addEventListener('load', loaded);
 }
 </script>
+{{/%(drag_data)s}}
 {{/%(src_img)s}}
 """ % {
     "que": IO_FLDS["qm"],
@@ -73,10 +87,23 @@ if (mask === null || mask.complete) {
     "sources": IO_FLDS["sc"],
     "extraone": IO_FLDS["e1"],
     "extratwo": IO_FLDS["e2"],
+    "drag_data": IO_FLDS["dd"],
 }
 
 iocard_back = """\
 {{#%(src_img)s}}
+{{#%(drag_data)s}}
+<div id="io-header">{{%(header)s}}</div>
+<div id="io-dnd" class="io-dnd-card io-dnd-answer">
+  <div id="io-dnd-stage" class="io-dnd-stage">
+    {{%(src_img)s}}
+  </div>
+</div>
+{{#%(footer)s}}<div id="io-footer">{{%(footer)s}}</div>{{/%(footer)s}}
+<script id="io-dnd-data" type="application/json">{{%(drag_data)s}}</script>
+<script>setTimeout(function(){ if (globalThis.imageOcclusion) imageOcclusion.initDragAndDrop(); }, 0);</script>
+{{/%(drag_data)s}}
+{{^%(drag_data)s}}
 <div id="io-header">{{%(header)s}}</div>
 <div id="io-wrapper">
   <div id="io-overlay">{{%(ans)s}}</div>
@@ -132,6 +159,7 @@ if (mask === null || mask.complete) {
     mask.addEventListener('load', loaded);
 }
 </script>
+{{/%(drag_data)s}}
 {{/%(src_img)s}}
 """ % {
     "que": IO_FLDS["qm"],
@@ -144,6 +172,7 @@ if (mask === null || mask.complete) {
     "sources": IO_FLDS["sc"],
     "extraone": IO_FLDS["e1"],
     "extratwo": IO_FLDS["e2"],
+    "drag_data": IO_FLDS["dd"],
 }
 
 iocard_css = """\
@@ -222,6 +251,74 @@ iocard_css = """\
   font-size: 0.5em;
 }
 
+/* DRAG AND DROP CARDS */
+.io-dnd-stage {
+  position: relative;
+  display: inline-block;
+  max-width: 100%;
+}
+
+.io-dnd-stage > img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+
+.io-dnd-target {
+  position: absolute;
+  box-sizing: border-box;
+  border: 2px solid #444;
+  background: #fff;
+  min-width: 3em;
+  min-height: 1.5em;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.io-dnd-target.io-dnd-over {
+  outline: 3px solid #5aa7ff;
+}
+
+.io-dnd-options {
+  margin-top: 0.75em;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.45em;
+}
+
+.io-dnd-option {
+  cursor: grab;
+  user-select: none;
+  border: 2px solid #555;
+  background: white;
+  padding: 0.25em 0.7em;
+  min-width: 5em;
+  font-size: 0.85em;
+  touch-action: none;
+  z-index: 10;
+}
+
+.io-dnd-option:active {
+  cursor: grabbing;
+}
+
+.io-dnd-option.io-dnd-dragging {
+  position: fixed;
+  left: 0;
+  top: 0;
+  pointer-events: none;
+  opacity: 0.96;
+  z-index: 9999;
+}
+
+.io-dnd-answer-label {
+  padding: 0.15em 0.45em;
+  background: rgba(255, 255, 255, 0.92);
+  font-size: 0.8em;
+}
+
 /* ADJUSTMENTS FOR MOBILE DEVICES */
 
 .mobile .card, .mobile #content {
@@ -293,6 +390,18 @@ def add_io_model(col):
     return io_model
 
 
+def ensure_io_fields(col, io_model):
+    models = col.models
+    field_names = models.fieldNames(io_model)
+    for i in IO_FLDS_IDS:
+        field_name = IO_FLDS[i]
+        if field_name in field_names:
+            continue
+        fld = models.newField(field_name)
+        models.addField(io_model, fld)
+        field_names.append(field_name)
+
+
 def reset_template(col):
     print("Resetting IO Enhanced card template to defaults")
     io_model = col.models.byName(IO_MODEL_NAME)
@@ -320,9 +429,16 @@ def update_template(col, old_version):
     if not io_model:
         return add_io_model(col)
 
+    ensure_io_fields(col, io_model)
+
     template = io_model["tmpls"][0]
-    template["qfmt"] += "\n".join(additions[0])
-    template["afmt"] += "\n".join(additions[1])
-    io_model["css"] += "\n".join(additions[2])
+    if old_version < 1.33:
+        template["qfmt"] = iocard_front
+        template["afmt"] = iocard_back
+        io_model["css"] = iocard_css
+    else:
+        template["qfmt"] += "\n".join(additions[0])
+        template["afmt"] += "\n".join(additions[1])
+        io_model["css"] += "\n".join(additions[2])
     col.models.save()
     return io_model

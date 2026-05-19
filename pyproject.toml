@@ -1,8 +1,8 @@
 [tool.poetry]
-name = "image-occlusion-enhanced"
+name = "image-occlusion-draglab"
 version = "v1.4.0"
-description = "Image Occlusion Enhanced Anki Add-on"
-authors = ["Glutanimate <glutanimate.com/contact>"]
+description = "Image Occlusion DragLab Anki Add-on"
+authors = ["Glutanimate <glutanimate.com/contact>", "JulianFermani"]
 license = "AGPL-3.0-or-later-with-additional-terms"
 
 [tool.poetry.dependencies]

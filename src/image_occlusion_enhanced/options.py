@@ -311,7 +311,7 @@ class ImgOccOpts(QDialog):
         self.setLayout(l_main)
         self.setMinimumWidth(800)
         self.setMinimumHeight(640)
-        self.setWindowTitle(_("Image Occlusion Enhanced Options"))
+        self.setWindowTitle(_("Image Occlusion DragLab Options"))
 
     def create_horizontal_rule(self):
         """

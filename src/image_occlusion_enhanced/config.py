@@ -59,14 +59,30 @@ IO_FLDS = {
     "qm": "Question Mask",
     "am": "Answer Mask",
     "om": "Original Mask",
+    "do": "Drag Options",
+    "dd": "Drag Data",
 }
 
-IO_FLDS_IDS = ["id", "hd", "im", "qm", "ft", "rk", "sc", "e1", "e2", "am", "om"]
+IO_FLDS_IDS = [
+    "id",
+    "hd",
+    "im",
+    "qm",
+    "ft",
+    "rk",
+    "sc",
+    "e1",
+    "e2",
+    "am",
+    "om",
+    "do",
+    "dd",
+]
 
 # TODO: Use IDs instead of names to make these compatible with self.ioflds
 
 # fields that aren't user-editable
-IO_FIDS_PRIV = ["id", "im", "qm", "am", "om"]
+IO_FIDS_PRIV = ["id", "im", "qm", "am", "om", "dd"]
 
 # fields that are synced between an IO Editor session and Anki's Editor
 IO_FIDS_PRSV = ["sc"]
@@ -78,9 +94,9 @@ IO_HOTKEY = "Ctrl+Shift+O"
 
 # default configurations
 # TODO: update version number before release
-default_conf_local = {"version": 1.25, "dir": IO_HOME, "hotkey": IO_HOTKEY}
+default_conf_local = {"version": 1.33, "dir": IO_HOME, "hotkey": IO_HOTKEY}
 default_conf_syncd = {
-    "version": 1.25,
+    "version": 1.33,
     "ofill": "FFEBA2",
     "qfill": "FF7E7E",
     "scol": "2D2D2D",
@@ -113,7 +129,9 @@ def getSyncedConfig():
         for key in list(default_conf_syncd.keys()):
             if key not in mw.col.conf["imgocc"]:
                 mw.col.conf["imgocc"][key] = default_conf_syncd[key]
-        mw.col.conf["imgocc"]["version"] = default_conf_syncd["version"]
+        for key, value in default_conf_syncd["flds"].items():
+            if key not in mw.col.conf["imgocc"]["flds"]:
+                mw.col.conf["imgocc"]["flds"][key] = value
         mw.col.setMod()
 
     return mw.col.conf["imgocc"]
@@ -138,10 +156,15 @@ def getOrCreateModel():
         # create model and set up default field name config
         model = template.add_io_model(mw.col)
         mw.col.conf["imgocc"]["flds"] = default_conf_syncd["flds"]
+        mw.col.conf["imgocc"]["version"] = default_conf_syncd["version"]
+        mw.col.setMod()
         return model
     model_version = mw.col.conf["imgocc"]["version"]
     if model_version < default_conf_syncd["version"]:
-        return template.update_template(mw.col, model_version)
+        model = template.update_template(mw.col, model_version)
+        mw.col.conf["imgocc"]["version"] = default_conf_syncd["version"]
+        mw.col.setMod()
+        return model
     return model
 
 

@@ -245,6 +245,9 @@ class ImgOccEdit(QDialog):
         self.oa_btn = button_box.addButton(
             _("Hide &One, Guess One"), QDialogButtonBox.ButtonRole.ActionRole
         )
+        self.dd_btn = button_box.addButton(
+            _("Drag && Drop"), QDialogButtonBox.ButtonRole.ActionRole
+        )
         help_button = button_box.addButton(
             _("&?"), QDialogButtonBox.ButtonRole.ActionRole
         )
@@ -267,6 +270,10 @@ class ImgOccEdit(QDialog):
             "Generate cards with overlapping information, where one<br>"
             "label is hidden on the front and revealed on the back"
         )
+        dd_tt = _(
+            "Generate one drag and drop card. Add one option per mask in the "
+            "Drag Options field."
+        )
         close_tt = _("Close Image Occlusion Editor without generating cards")
 
         image_btn.setToolTip(image_tt)
@@ -274,6 +281,7 @@ class ImgOccEdit(QDialog):
         self.new_btn.setToolTip(new_tt)
         self.ao_btn.setToolTip(ao_tt)
         self.oa_btn.setToolTip(oa_tt)
+        self.dd_btn.setToolTip(dd_tt)
         close_button.setToolTip(close_tt)
         self.occl_tp_select.setItemData(0, dc_tt, Qt.ItemDataRole.ToolTipRole)
         self.occl_tp_select.setItemData(1, ao_tt, Qt.ItemDataRole.ToolTipRole)
@@ -285,6 +293,7 @@ class ImgOccEdit(QDialog):
             self.new_btn,
             self.ao_btn,
             self.oa_btn,
+            self.dd_btn,
             help_button,
             close_button,
         ]:
@@ -298,6 +307,7 @@ class ImgOccEdit(QDialog):
         self.new_btn.clicked.connect(self.new)
         self.ao_btn.clicked.connect(self.addAO)
         self.oa_btn.clicked.connect(self.addOA)
+        self.dd_btn.clicked.connect(self.addDD)
         help_button.clicked.connect(self.onHelp)
         close_button.clicked.connect(self.close)
 
@@ -400,6 +410,9 @@ class ImgOccEdit(QDialog):
     def addOA(self, close=False):
         self.imgoccadd.onAddNotesButton("oa", close)
 
+    def addDD(self, close=False):
+        self.imgoccadd.onAddNotesButton("dd", close)
+
     def new(self, close=False):
         choice = self.occl_tp_select.currentData()
         self.imgoccadd.onAddNotesButton(choice, close)
@@ -464,7 +477,7 @@ class ImgOccEdit(QDialog):
     def switchToMode(self, mode):
         """Toggle between add and edit layouts"""
         hide_on_add = [self.occl_tp_select, self.edit_btn, self.new_btn]
-        hide_on_edit = [self.ao_btn, self.oa_btn]
+        hide_on_edit = [self.ao_btn, self.oa_btn, self.dd_btn]
         self.mode = mode
         for i in list(self.tedit.values()):
             i.show()
@@ -476,7 +489,7 @@ class ImgOccEdit(QDialog):
             for i in hide_on_edit:
                 i.show()
             dl_txt = _("Deck")
-            ttl = _("Image Occlusion Enhanced - Add Mode")
+            ttl = _("Image Occlusion DragLab - Add Mode")
             bl_txt = _("Add Cards:")
         else:
             for i in hide_on_add:
@@ -488,7 +501,7 @@ class ImgOccEdit(QDialog):
                     self.tedit[i].hide()
                     self.tlabel[i].hide()
             dl_txt = _("Deck for <i>Add new cards</i>")
-            ttl = _("Image Occlusion Enhanced - Editing Mode")
+            ttl = _("Image Occlusion DragLab - Editing Mode")
             bl_txt = _("Type:")
         self.deckChooser.deckLabel.setText(dl_txt)
         self.setWindowTitle(ttl)

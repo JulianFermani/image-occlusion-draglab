@@ -335,7 +335,7 @@ class ImgOccAdd(object):
         if r1 is False:
             return False
         (fields, tags) = r1
-        did = dialog.deckChooser.selected_deck_id
+        did = dialog.deckChooser.selectedId()
 
         noteGenerator = genByKey(choice)
         gen = noteGenerator(
