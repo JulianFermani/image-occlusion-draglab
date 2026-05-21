@@ -94,9 +94,9 @@ IO_HOTKEY = "Ctrl+Shift+O"
 
 # default configurations
 # TODO: update version number before release
-default_conf_local = {"version": 1.33, "dir": IO_HOME, "hotkey": IO_HOTKEY}
+default_conf_local = {"version": 1.34, "dir": IO_HOME, "hotkey": IO_HOTKEY}
 default_conf_syncd = {
-    "version": 1.33,
+    "version": 1.34,
     "ofill": "FFEBA2",
     "qfill": "FF7E7E",
     "scol": "2D2D2D",

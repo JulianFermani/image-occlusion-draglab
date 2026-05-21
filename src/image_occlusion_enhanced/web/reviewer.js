@@ -77,6 +77,7 @@ function initImageOcclusionDragAndDrop() {
     element.style.width = `${target.width}%`;
     element.style.height = `${target.height}%`;
     element.style.setProperty("background", "#fff", "important");
+    element.style.setProperty("color", "#000", "important");
     element.style.setProperty("opacity", "1", "important");
     stage.appendChild(element);
 
@@ -85,6 +86,7 @@ function initImageOcclusionDragAndDrop() {
       label.className = "io-dnd-answer-label";
       label.textContent = target.label;
       label.style.setProperty("background", "#fff", "important");
+      label.style.setProperty("color", "#000", "important");
       label.style.setProperty("opacity", "1", "important");
       element.appendChild(label);
     }
@@ -121,6 +123,7 @@ function initImageOcclusionDragAndDrop() {
     option.dataset.label = target.label;
     option.textContent = target.label;
     option.style.setProperty("background", "#fff", "important");
+    option.style.setProperty("color", "#000", "important");
     option.style.setProperty("opacity", "1", "important");
     option.addEventListener("pointerdown", onPointerDown);
     return option;
@@ -146,6 +149,7 @@ function initImageOcclusionDragAndDrop() {
     dragged.style.zIndex = "9999";
     dragged.style.visibility = "visible";
     dragged.style.setProperty("background", "#fff", "important");
+    dragged.style.setProperty("color", "#000", "important");
     dragged.style.setProperty("opacity", "1", "important");
     dragged.classList.add("io-dnd-dragging");
     document.body.appendChild(dragged);
@@ -305,6 +309,7 @@ function ensureDragAndDropStyles() {
   style.textContent = `
 .io-dnd-target {
   background: #fff !important;
+  color: #000 !important;
   opacity: 1 !important;
 }
 .io-dnd-target.io-dnd-correct {
@@ -321,6 +326,7 @@ function ensureDragAndDropStyles() {
 }
 .io-dnd-option {
   background: #fff !important;
+  color: #000 !important;
   opacity: 1 !important;
   touch-action: none !important;
 }
@@ -333,6 +339,7 @@ function ensureDragAndDropStyles() {
 }
 .io-dnd-answer-label {
   background: #fff !important;
+  color: #000 !important;
   opacity: 1 !important;
 }
 .io-dnd-controls {

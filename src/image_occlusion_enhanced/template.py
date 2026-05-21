@@ -269,6 +269,7 @@ iocard_css = """\
   box-sizing: border-box;
   border: 2px solid #444;
   background: #fff;
+  color: #000;
   min-width: 3em;
   min-height: 1.5em;
   display: flex;
@@ -293,6 +294,7 @@ iocard_css = """\
   user-select: none;
   border: 2px solid #555;
   background: white;
+  color: #000;
   padding: 0.25em 0.7em;
   min-width: 5em;
   font-size: 0.85em;
@@ -316,6 +318,7 @@ iocard_css = """\
 .io-dnd-answer-label {
   padding: 0.15em 0.45em;
   background: rgba(255, 255, 255, 0.92);
+  color: #000;
   font-size: 0.8em;
 }
 
@@ -432,7 +435,7 @@ def update_template(col, old_version):
     ensure_io_fields(col, io_model)
 
     template = io_model["tmpls"][0]
-    if old_version < 1.33:
+    if old_version < 1.34:
         template["qfmt"] = iocard_front
         template["afmt"] = iocard_back
         io_model["css"] = iocard_css
